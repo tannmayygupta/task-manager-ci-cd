@@ -16,9 +16,29 @@ input {
 
 button {
     padding: 10px;
+    margin-left: 5px;
     cursor: pointer;
 }
 
 li {
     margin: 10px;
+    list-style: none;
+    padding: 10px;
+    background: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
 }
