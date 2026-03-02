@@ -13,7 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to EC2
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "index.html,style.css,script.js"
+          target: "/home/ubuntu/"
+
+      - name: Move files to Nginx directory
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -21,6 +30,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo rm -rf /var/www/html/*
-            sudo mv ~/index.html /var/www/html/
-            sudo mv ~/style.css /var/www/html/
-            sudo mv ~/script.js /var/www/html/
+            sudo mv /home/ubuntu/index.html /var/www/html/
+            sudo mv /home/ubuntu/style.css /var/www/html/
+            sudo mv /home/ubuntu/script.js /var/www/html/
