@@ -1,91 +1,96 @@
-document.addEventListener("DOMContentLoaded", loadTasks);
+document.addEventListener("DOMContentLoaded", function () {
+    loadTasks();
+
+    // Add task on Enter key
+    document.getElementById("taskInput").addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            addTask();
+        }
+    });
+});
 
 // Add task
 function addTask() {
     const input = document.getElementById("taskInput");
-    const taskText = input.value.trim();
+    const priority = document.getElementById("priorityInput").value;
 
+    const taskText = input.value.trim();
     if (taskText === "") return;
 
-    createTaskElement(taskText);
-    saveTask(taskText);
+    const tasks = getTasks();
+
+    tasks.push({
+        text: taskText,
+        completed: false,
+        priority: parseInt(priority)
+    });
+
+    saveTasks(tasks);
+    renderTasks(tasks);
 
     input.value = "";
 }
 
-// Create task element
-function createTaskElement(taskText, completed = false) {
-    const li = document.createElement("li");
+// Render tasks
+function renderTasks(tasks) {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
 
-    if (completed) li.classList.add("completed");
+    // Sort by priority (1 = High first)
+    tasks.sort((a, b) => a.priority - b.priority);
 
-    const span = document.createElement("span");
-    span.textContent = taskText;
+    tasks.forEach((task, index) => {
+        const li = document.createElement("li");
 
-    span.onclick = function () {
-        li.classList.toggle("completed");
-        updateStorage();
-    };
+        if (task.completed) li.classList.add("completed");
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.classList.add("delete-btn");
+        // Add priority class
+        if (task.priority === 1) li.classList.add("priority-high");
+        if (task.priority === 2) li.classList.add("priority-medium");
+        if (task.priority === 3) li.classList.add("priority-low");
 
-    deleteBtn.onclick = function () {
-        li.remove();
-        updateStorage();
-    };
+        const span = document.createElement("span");
+        span.textContent = task.text;
 
-    li.appendChild(span);
-    li.appendChild(deleteBtn);
+        span.onclick = function () {
+            task.completed = !task.completed;
+            saveTasks(tasks);
+            renderTasks(tasks);
+        };
 
-    document.getElementById("taskList").appendChild(li);
-}
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.classList.add("delete-btn");
 
-// Save task to localStorage
-function saveTask(taskText) {
-    const tasks = getTasks();
-    tasks.push({ text: taskText, completed: false });
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
+        deleteBtn.onclick = function () {
+            tasks.splice(index, 1);
+            saveTasks(tasks);
+            renderTasks(tasks);
+        };
 
-// Load tasks on refresh
-function loadTasks() {
-    const tasks = getTasks();
-    tasks.forEach(task => {
-        createTaskElement(task.text, task.completed);
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        list.appendChild(li);
     });
 }
 
-// Update storage after changes
-function updateStorage() {
-    const taskElements = document.querySelectorAll("#taskList li");
-    const tasks = [];
-
-    taskElements.forEach(li => {
-        tasks.push({
-            text: li.querySelector("span").textContent,
-            completed: li.classList.contains("completed")
-        });
-    });
-
+// Save tasks
+function saveTasks(tasks) {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-// Get tasks from localStorage
+// Get tasks
 function getTasks() {
     return JSON.parse(localStorage.getItem("tasks")) || [];
 }
 
-// Clear all tasks
+// Load tasks
+function loadTasks() {
+    renderTasks(getTasks());
+}
+
+// Clear all
 function clearAll() {
     localStorage.removeItem("tasks");
     document.getElementById("taskList").innerHTML = "";
 }
-
-// Add task on Enter key
-document.getElementById("taskInput").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        addTask();
-    }
-});
